@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head-content}">
+    <title>Админ-панель - Кофейня</title>
+</head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div th:replace="~{admin/admin_fragments :: admin-sidebar}"></div>
+        </div>
+        <div class="col-md-9">
+            <h1>Добро пожаловать, <span sec:authentication="name"></span>!</h1>
+            <p>Это главная страница админ-панели. Выберите раздел для управления.</p>
+            
+            <!-- Сюда можно добавить какую-то сводную информацию, если нужно -->
+
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-content}"></div>
+</body>
+</html> 

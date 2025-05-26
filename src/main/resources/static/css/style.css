@@ -1,0 +1,77 @@
+body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f4f6f9; /* Более мягкий фон */
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Чтобы футер прижимался к низу */
+}
+
+h1, h2 { color: #795548; }
+.navbar {
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+.container {
+    flex-grow: 1; /* Основной контент занимает доступное пространство */
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.card {
+    border: none;
+    transition: transform .2s ease-out, box-shadow .2s ease-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,.15) !important; /* !important для переопределения Bootstrap */
+}
+
+.btn-primary {
+    background-color: #795548; /* Коричневый из вашего style.css */
+    border-color: #795548;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #5d4037;
+    border-color: #5d4037;
+}
+
+.footer {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+/* Стили для активных ссылок в навбаре */
+.navbar-nav .nav-link.active {
+    font-weight: bold;
+    color: #fff !important; /* Для темной темы навбара */
+}
+
+/* Улучшение внешнего вида форм */
+.form-control:focus {
+    border-color: #795548;
+    box-shadow: 0 0 0 0.2rem rgba(121, 85, 72, 0.25);
+}
+
+.alert {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+/* Стили для изображений товаров в карточках */
+.product-card-img {
+    height: 200px; /* Фиксированная высота */
+    object-fit: cover; /* Масштабирование с сохранением пропорций и обрезкой */
+    width: 100%;
+}
+
+.product-card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card .card-text.flex-grow-1 {
+    margin-bottom: 1rem; /* Небольшой отступ снизу для описания */
+} 

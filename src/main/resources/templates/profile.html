@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head-content}"></head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<div class="container mt-4">
+    <h2>Профиль пользователя <span th:text="${username}"></span></h2>
+
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <!-- Отображение Flash сообщений из RedirectAttributes -->
+    <div th:if="${param.successMessage != null}" class="alert alert-success" th:text="${param.successMessage[0]}"></div>
+    <div th:if="${param.errorMessage != null}" class="alert alert-danger" th:text="${param.errorMessage[0]}"></div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Личная информация</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Имя:</strong> <span th:text="${user.firstName != null ? user.firstName : 'Не указано'}"></span></p>
+            <p><strong>Фамилия:</strong> <span th:text="${user.lastName != null ? user.lastName : 'Не указано'}"></span></p>
+            <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+            <a th:href="@{/profile/edit}" class="btn btn-primary">Редактировать профиль</a>
+        </div>
+    </div>
+
+    <!-- Блок программы лояльности -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Программа лояльности</h4>
+        </div>
+        <div class="card-body" th:if="${loyaltyProgression != null}">
+            <p><strong>Текущий статус:</strong> <span th:text="${loyaltyProgression.currentStatus}"></span></p>
+            <p><strong>Ваша скидка:</strong> <span th:text="${#numbers.formatPercent(loyaltyProgression.currentDiscount, 1, 0)}"></span></p>
+            <p><strong>Всего потрачено (завершенные заказы):</strong> <span th:text="${#numbers.formatDecimal(loyaltyProgression.totalSpent, 1, 'COMMA', 2, 'POINT')} + ' руб.'"></span></p>
+            
+            <div th:if="${loyaltyProgression.nextStatus != null}">
+                <p><strong>Следующий статус:</strong> <span th:text="${loyaltyProgression.nextStatus}"></span></p>
+                <p>До следующего статуса осталось потратить: 
+                    <span th:text="${#numbers.formatDecimal(loyaltyProgression.amountNeededForNextStatus, 1, 'COMMA', 2, 'POINT')} + ' руб.'"></span>
+                </p>
+                <div class="progress">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         th:style="'width: ' + ${loyaltyProgression.totalSpent.multiply(100).divide(loyaltyProgression.nextThreshold, 2, T(java.math.RoundingMode).HALF_UP)} + '%'" 
+                         th:aria-valuenow="${loyaltyProgression.totalSpent}" 
+                         th:aria-valuemin="0" 
+                         th:aria-valuemax="${loyaltyProgression.nextThreshold}"
+                         th:text="${#numbers.formatDecimal(loyaltyProgression.totalSpent, 1, 'COMMA', 0, 'POINT')} + ' / ' + ${#numbers.formatDecimal(loyaltyProgression.nextThreshold, 1, 'COMMA', 0, 'POINT')} + ' руб.'">
+                    </div>
+                </div>
+            </div>
+            <div th:if="${loyaltyProgression.nextStatus == null}">
+                <p>Вы достигли максимального уровня в программе лояльности!</p>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${orderSuccessMessage}" class="alert alert-success" th:text="${orderSuccessMessage}"></div>
+    <div th:if="${orderErrorMessage}" class="alert alert-danger" th:text="${orderErrorMessage}"></div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>История заказов</h4>
+        </div>
+        <div class="card-body">
+            <div th:if="${orders == null or orders.isEmpty()}">
+                <p>У вас пока нет заказов.</p>
+            </div>
+            <div th:if="${orders != null and !orders.isEmpty()}">
+                <div class="accordion" id="ordersAccordion">
+                    <div class="accordion-item" th:each="order, iterStat : ${orders}">
+                        <h2 class="accordion-header" th:id="'heading' + ${iterStat.index}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    th:data-bs-target="'#collapse' + ${iterStat.index}" aria-expanded="false" 
+                                    th:aria-controls="'collapse' + ${iterStat.index}">
+                                Заказ #<span th:text="${order.id}"></span> от <span th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></span> - 
+                                Статус: <span th:text="${order.status}"></span> - 
+                                Сумма: <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 'COMMA', 2, 'POINT')} + ' руб.'"></span>
+                            </button>
+                        </h2>
+                        <div th:id="'collapse' + ${iterStat.index}" class="accordion-collapse collapse" 
+                             th:aria-labelledby="'heading' + ${iterStat.index}" data-bs-parent="#ordersAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-group">
+                                    <li class="list-group-item" th:each="item : ${order.items}">
+                                        <span th:text="${item.product.name}"></span> - 
+                                        <span th:text="${item.quantity}"></span> шт. x 
+                                        <span th:text="${#numbers.formatDecimal(item.priceAtPurchase, 1, 'COMMA', 2, 'POINT')} + ' руб.'"></span> = 
+                                        <span th:text="${#numbers.formatDecimal(item.priceAtPurchase.multiply(T(java.math.BigDecimal).valueOf(item.quantity.longValue())), 1, 'COMMA', 2, 'POINT')} + ' руб.'"></span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-content}"></div>
+</body>
+</html> 

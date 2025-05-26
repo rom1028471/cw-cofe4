@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/coffeeshop
+    username: postgres
+    password: "1234"
+    driver-class-name: org.postgresql.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        # dialect: org.hibernate.dialect.PostgreSQLDialect
+    
+  sql:
+    init:
+      platform: postgresql
+      mode: never
+
+server:
+  port: 8080
+
+# Настройки для загрузки файлов
+file:
+  upload:
+    # Путь для сохранения изображений продуктов относительно корня проекта.
+    # Для разработки, указываем путь к static ресурсам, чтобы Thymeleaf мог их отобразить.
+    product-image-path: "src/main/resources/static/media/products/"
+
+logging:
+  level:
+    org.springframework.security: DEBUG

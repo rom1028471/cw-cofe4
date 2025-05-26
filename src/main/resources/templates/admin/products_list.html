@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head-content}">
+    <title>Управление товарами - Админка</title>
+</head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div th:replace="~{admin/admin_fragments :: admin-sidebar}"></div>
+        </div>
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Управление товарами</h2>
+                <a th:href="@{/admin/products/add}" class="btn btn-success">Добавить товар</a>
+            </div>
+
+            <!-- Форма фильтрации -->
+            <form th:action="@{/admin/products}" method="get" class="mb-3">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <select name="categoryId" class="form-select" onchange="this.form.submit()">
+                            <option value="">Все категории</option>
+                            <option th:each="cat : ${categories}" 
+                                    th:value="${cat.id}" 
+                                    th:text="${cat.name}" 
+                                    th:selected="${selectedCategoryId != null && selectedCategoryId == cat.id}">Категория</option>
+                        </select>
+                    </div>
+                     <div class="col-md-2">
+                        <a th:href="@{/admin/products}" class="btn btn-outline-secondary w-100">Сбросить</a>
+                    </div>
+                </div>
+                 <!-- Скрытые поля для сохранения текущей сортировки и размера страницы при смене фильтра -->
+                <input type="hidden" name="sort" th:value="${sortField + ',' + sortDir}">
+                <input type="hidden" name="size" th:value="${productPage != null ? productPage.size : 10}">
+            </form>
+
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            <div th:if="${imageError}" class="alert alert-danger" th:text="${imageError}"></div>
+
+            <div th:if="${productPage == null or productPage.empty}">
+                <p th:if="${selectedCategoryId != null}">Товаров в выбранной категории нет.</p>
+                <p th:unless="${selectedCategoryId != null}">Товаров пока нет.</p>
+            </div>
+            <div th:if="${productPage != null and !productPage.empty}">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th><a th:href="@{/admin/products(size=${productPage.size}, sort='id,' + (${sortField == 'id' and sortDir == 'ASC'} ? ${reverseSortDir} : 'asc'))}">ID <span th:if="${sortField == 'id'}" th:text="${sortDir == 'ASC' ? '▲' : '▼'}"></span></a></th>
+                            <th><a th:href="@{/admin/products(size=${productPage.size}, sort='name,' + (${sortField == 'name' and sortDir == 'ASC'} ? ${reverseSortDir} : 'asc'))}">Название <span th:if="${sortField == 'name'}" th:text="${sortDir == 'ASC' ? '▲' : '▼'}"></span></a></th>
+                            <th>Категория</th>
+                            <th><a th:href="@{/admin/products(size=${productPage.size}, sort='price,' + (${sortField == 'price' and sortDir == 'ASC'} ? ${reverseSortDir} : 'asc'))}">Цена <span th:if="${sortField == 'price'}" th:text="${sortDir == 'ASC' ? '▲' : '▼'}"></span></a></th>
+                            <th><a th:href="@{/admin/products(size=${productPage.size}, sort='available,' + (${sortField == 'available' and sortDir == 'ASC'} ? ${reverseSortDir} : 'asc'))}">Доступен <span th:if="${sortField == 'available'}" th:text="${sortDir == 'ASC' ? '▲' : '▼'}"></span></a></th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="product : ${productPage.content}">
+                            <td th:text="${product.id}">1</td>
+                            <td th:text="${product.name}">Название</td>
+                            <td th:text="${product.category != null ? product.category.name : 'Без категории'}">Категория</td>
+                            <td th:text="${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')} + ' руб.'">100.00 руб.</td>
+                            <td>
+                                <span th:if="${product.available}" class="badge bg-success">Да</span>
+                                <span th:unless="${product.available}" class="badge bg-danger">Нет</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/admin/products/edit/{id}(id=${product.id})}" class="btn btn-primary btn-sm">Изменить</a>
+                                <a th:href="@{/admin/products/delete/{id}(id=${product.id})}" 
+                                   class="btn btn-danger btn-sm" 
+                                   th:onclick="'return confirm(\'Вы уверены, что хотите удалить этот товар? Восстановить его будет невозможно.\')'">Удалить</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Пагинация -->
+                <nav aria-label="Page navigation" th:if="${productPage.totalPages > 1}">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${productPage.first ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/products(page=${productPage.number - 1}, size=${productPage.size}, sort=${sortField + ',' + sortDir}, categoryId=${selectedCategoryId})}">Предыдущая</a>
+                        </li>
+
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, productPage.totalPages - 1)}" 
+                            th:classappend="${i == productPage.number ? 'active' : ''}">
+                            <a class="page-link" th:href="@{/admin/products(page=${i}, size=${productPage.size}, sort=${sortField + ',' + sortDir}, categoryId=${selectedCategoryId})}" th:text="${i + 1}">1</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${productPage.last ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/products(page=${productPage.number + 1}, size=${productPage.size}, sort=${sortField + ',' + sortDir}, categoryId=${selectedCategoryId})}">Следующая</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-content}"></div>
+</body>
+</html> 

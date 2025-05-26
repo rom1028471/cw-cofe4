@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head-content}">
+    <title>Управление заказами - Админка</title>
+</head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div th:replace="~{admin/admin_fragments :: admin-sidebar}"></div>
+        </div>
+        <div class="col-md-9">
+            <h2>Управление заказами</h2>
+
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <div th:if="${orders.isEmpty()}">
+                <p>Заказов пока нет.</p>
+            </div>
+            <div class="accordion" id="ordersAccordionAdmin" th:if="${!orders.isEmpty()}">
+                <div class="accordion-item" th:each="order, iterStat : ${orders}">
+                    <h2 class="accordion-header" th:id="'headingAdmin' + ${iterStat.index}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                th:data-bs-target="'#collapseAdmin' + ${iterStat.index}" aria-expanded="false" 
+                                th:aria-controls="'collapseAdmin' + ${iterStat.index}">
+                            Заказ #<span th:text="${order.id}"></span> от <span th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></span> - 
+                            Пользователь: <span th:text="${order.user.username}"></span> - 
+                            Статус: <span th:text="${order.status}"></span> -
+                            Сумма: <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 'COMMA', 2, 'POINT')} + ' руб.'"></span>
+                        </button>
+                    </h2>
+                    <div th:id="'collapseAdmin' + ${iterStat.index}" class="accordion-collapse collapse" 
+                         th:aria-labelledby="'headingAdmin' + ${iterStat.index}" data-bs-parent="#ordersAccordionAdmin">
+                        <div class="accordion-body">
+                            <p><strong>Детали заказа:</strong></p>
+                            <ul class="list-group mb-3">
+                                <li class="list-group-item" th:each="item : ${order.items}">
+                                    <span th:text="${item.product.name}"></span> - 
+                                    <span th:text="${item.quantity}"></span> шт. x 
+                                    <span th:text="${#numbers.formatDecimal(item.priceAtPurchase, 1, 'COMMA', 2, 'POINT')} + ' руб.'"></span>
+                                </li>
+                            </ul>
+                            <form th:action="@{/admin/orders/update-status/{id}(id=${order.id})}" method="post" class="row g-2 align-items-center">
+                                <div class="col-auto">
+                                 <label for="statusUpdate" class="col-form-label">Изменить статус:</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select name="status" id="statusUpdate" class="form-select form-select-sm">
+                                        <option th:each="s : ${T(com.example.coffeeshop.model.OrderStatus).values()}" 
+                                                th:value="${s}" th:text="${s}" 
+                                                th:selected="${s == order.status}">Статус</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-primary btn-sm">Обновить</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-content}"></div>
+</body>
+</html> 

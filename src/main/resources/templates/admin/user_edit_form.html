@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head-content}">
+    <title>Изменить роли пользователя - Админка</title>
+</head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div th:replace="~{admin/admin_fragments :: admin-sidebar}"></div>
+        </div>
+        <div class="col-md-9">
+            <h2>Изменить роли для пользователя: <span th:text="${user.username}"></span></h2>
+            <hr/>
+            <form th:action="@{/admin/users/update/{id}(id=${user.id})}" th:object="${user}" method="post">
+                <input type="hidden" th:field="*{id}"/>
+                <input type="hidden" th:field="*{username}"/> <!-- username не редактируется -->
+                <input type="hidden" th:field="*{email}"/> <!-- email не редактируется -->
+                <input type="hidden" th:field="*{password}"/> <!-- пароль не редактируется здесь -->
+
+
+                <div class="mb-3">
+                    <label class="form-label">Роли:</label>
+                    <div th:each="role : ${allRoles}" class="form-check">
+                        <input class="form-check-input" type="checkbox" 
+                               name="roles" th:value="${role.id}" 
+                               th:checked="${#lists.contains(user.roles, role)}" 
+                               th:id="'role-' + ${role.id}">
+                        <label class="form-check-label" th:for="'role-' + ${role.id}" th:text="${role.name}">ROLE_NAME</label>
+                    </div>
+                    <!-- Не позволяем убирать последнюю роль или роль ADMIN у самого себя, если это единственный админ -->
+                     <small th:if="${#authentication.principal.username == user.username AND #lists.size(user.roles) == 1 AND #lists.contains(user.roles.![name], 'ROLE_ADMIN')}" class="form-text text-muted">
+                        Вы не можете снять с себя роль ADMIN, если вы единственный администратор.
+                    </small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                <a th:href="@{/admin/users}" class="btn btn-secondary">Отмена</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-content}"></div>
+</body>
+</html> 

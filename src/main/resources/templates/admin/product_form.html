@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head-content}">
+    <title th:text="${product.id == null ? 'Добавить товар' : 'Изменить товар'} + ' - Админка'">Форма товара</title>
+</head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div th:replace="~{admin/admin_fragments :: admin-sidebar}"></div>
+        </div>
+        <div class="col-md-9">
+            <h2 th:text="${product.id == null ? 'Добавить новый товар' : 'Изменить товар: ' + product.name}">Форма товара</h2>
+            <hr/>
+            <form th:action="@{/admin/products/save}" th:object="${product}" method="post" enctype="multipart/form-data">
+                <input type="hidden" th:field="*{id}"/>
+                <input type="hidden" th:field="*{imageName}"/>
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Название товара</label>
+                    <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                    <!-- TODO: Ошибки валидации th:if="${#fields.hasErrors('name')}" th:errors="*{name}" -->
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Описание</label>
+                    <textarea class="form-control" id="description" rows="3" th:field="*{description}"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="price" class="form-label">Цена (руб.)</label>
+                        <input type="number" step="0.01" class="form-control" id="price" th:field="*{price}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="category" class="form-label">Категория</label>
+                        <select class="form-select" id="category" th:field="*{category}">
+                            <option value="">Без категории</option>
+                            <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Категория</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="available" th:field="*{available}">
+                    <label class="form-check-label" for="available">Товар доступен</label>
+                </div>
+
+                <div class="mb-3">
+                    <label for="imageFile" class="form-label">Изображение товара</label>
+                    <input type="file" class="form-control" id="imageFile" name="imageFile">
+                    <div th:if="${product.imageName != null AND product.id != null}" class="mt-2">
+                        <p>Текущее изображение: <span th:text="${product.imageName}"></span></p>
+                        <img th:src="@{/media/products/} + ${product.imageName}" alt="Текущее изображение" style="max-width: 150px; max-height: 150px;">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Сохранить товар</button>
+                <a th:href="@{/admin/products}" class="btn btn-secondary">Отмена</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-content}"></div>
+</body>
+</html> 

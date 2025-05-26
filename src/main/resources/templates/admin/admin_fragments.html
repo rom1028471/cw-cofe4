@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+    <!-- Боковое меню админки -->
+    <div th:fragment="admin-sidebar" class="list-group">
+        <a th:href="@{/admin}" class="list-group-item list-group-item-action" 
+           th:classappend="${(#httpServletRequest != null and (#httpServletRequest.requestURI.equals('/admin') or #httpServletRequest.requestURI.equals('/admin/'))) ? 'active' : ''}">Главная</a>
+        <a th:href="@{/admin/products}" class="list-group-item list-group-item-action" 
+           th:classappend="${(#httpServletRequest != null and #strings.startsWith(#httpServletRequest.requestURI, '/admin/products')) ? 'active' : ''}">Товары</a>
+        <a th:href="@{/admin/categories}" class="list-group-item list-group-item-action" 
+           th:classappend="${(#httpServletRequest != null and #strings.startsWith(#httpServletRequest.requestURI, '/admin/categories')) ? 'active' : ''}">Категории</a>
+        <a th:href="@{/admin/users}" class="list-group-item list-group-item-action" 
+           th:classappend="${(#httpServletRequest != null and #strings.startsWith(#httpServletRequest.requestURI, '/admin/users')) ? 'active' : ''}">Пользователи</a>
+        <a th:href="@{/admin/orders}" class="list-group-item list-group-item-action" 
+           th:classappend="${(#httpServletRequest != null and #strings.startsWith(#httpServletRequest.requestURI, '/admin/orders')) ? 'active' : ''}">Заказы</a>
+    </div>
+
+</body>
+</html> 

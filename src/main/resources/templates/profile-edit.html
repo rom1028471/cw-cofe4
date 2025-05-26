@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head-content}">
+    <title>Редактировать профиль</title>
+</head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<div class="container mt-4">
+    <h2>Редактировать профиль (<span th:text="${username}"></span>)</h2>
+
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <form th:action="@{/profile/update}" th:object="${userUpdateDto}" method="post">
+        <div class="mb-3">
+            <label for="firstName" class="form-label">Имя:</label>
+            <input type="text" id="firstName" th:field="*{firstName}" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="lastName" class="form-label">Фамилия:</label>
+            <input type="text" id="lastName" th:field="*{lastName}" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email:</label>
+            <input type="email" id="email" th:field="*{email}" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+        <a th:href="@{/profile}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-content}"></div>
+</body>
+</html> 
