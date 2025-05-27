@@ -68,50 +68,5 @@ curl http://localhost:8080/main
 
 Spring Boot с Hibernate (`spring.jpa.hibernate.ddl-auto=update`) автоматически управляет схемой базы данных на основе Java-сущностей в пакете `com.example.coffeeshop.model`.
 
-Основные таблицы и их предполагаемые поля:
 
-*   **`roles`**
-    *   `id` (PK, BIGINT, автоинкремент)
-    *   `name` (VARCHAR, уникальное, не null)
-*   **`users`**
-    *   `id` (PK, BIGINT, автоинкремент)
-    *   `username` (VARCHAR, уникальное, не null)
-    *   `password` (VARCHAR, не null)
-    *   `email` (VARCHAR, уникальное, не null)
-    *   `created_at` (TIMESTAMP, не null)
-*   **`users_roles`** (таблица связей для User и Role, ManyToMany)
-    *   `user_id` (FK к users.id)
-    *   `role_id` (FK к roles.id)
-*   **`categories`**
-    *   `id` (PK, BIGINT, автоинкремент)
-    *   `name` (VARCHAR, уникальное, не null)
-*   **`products`**
-    *   `id` (PK, BIGINT, автоинкремент)
-    *   `name` (VARCHAR, не null)
-    *   `description` (TEXT)
-    *   `price` (DECIMAL/FLOAT, не null)
-    *   `category_id` (FK к categories.id)
-    *   `available` (BOOLEAN, не null)
-*   **`carts`**
-    *   `id` (PK, BIGINT, автоинкремент)
-    *   `user_id` (FK к users.id, уникальное, не null, OneToOne)
-*   **`cart_items`**
-    *   `id` (PK, BIGINT, автоинкремент)
-    *   `product_id` (FK к products.id)
-    *   `quantity` (INT, не null)
-    *   `cart_id` (FK к carts.id) (связь с корзиной)
-*   **`orders`**
-    *   `id` (PK, BIGINT, автоинкремент)
-    *   `user_id` (FK к users.id, не null)
-    *   `total_price` (DECIMAL, не null)
-    *   `status` (VARCHAR, не null)
-    *   `created_at` (TIMESTAMP, не null, не обновляется)
-*   **`order_items`**
-    *   `id` (PK, BIGINT, автоинкремент)
-    *   `product_id` (FK к products.id, не null)
-    *   `quantity` (INT, не null)
-    *   `price_at_purchase` (DECIMAL, не null)
-    *   `order_id` (FK к orders.id)
-
-Файл `src/main/resources/data.sql` используется для начального заполнения этих таблиц данными после их создания/обновления Hibernate.
 

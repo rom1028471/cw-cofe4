@@ -6,32 +6,72 @@
 <div th:replace="~{fragments/header :: navbar}"></div>
 
 <div class="container mt-4">
-    <div class="row mb-3">
-        <div class="col-md-6">
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-4">
             <h1>Каталог товаров</h1>
         </div>
-        <div class="col-md-6">
-            <form th:action="@{/main}" method="get" class="d-flex">
-                <input class="form-control me-2" type="search" name="search" placeholder="Поиск по названию..." th:value="${searchQuery}" aria-label="Search">
-                <button class="btn btn-outline-success" type="submit">Поиск</button>
+        <div class="col-md-8">
+            <form th:action="@{/main}" method="get" class="d-flex justify-content-end">
+                <input class="form-control me-2" type="search" name="search" placeholder="Поиск по названию..." th:value="${searchQuery}" aria-label="Search" style="max-width: 250px;">
+                <button class="btn btn-outline-primary" type="submit">Поиск</button>
             </form>
         </div>
     </div>
 
+    <!-- Форма фильтров и сортировки -->
+    <form th:action="@{/main}" method="get" class="mb-4 p-3 border rounded bg-light">
+        <input type="hidden" name="search" th:value="${searchQuery}"> <!-- Сохраняем текущий поисковый запрос -->
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="categoryId" class="form-label">Категория:</label>
+                <select name="categoryId" id="categoryId" class="form-select form-select-sm">
+                    <option value="">Все категории</option>
+                    <option th:each="cat : ${categories}" 
+                            th:value="${cat.id}" 
+                            th:text="${cat.name}" 
+                            th:selected="${cat.id == selectedCategoryId}">Категория</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="minPrice" class="form-label">Мин. цена:</label>
+                <input type="number" name="minPrice" id="minPrice" class="form-control form-control-sm" th:value="${minPrice}" step="0.01" min="0">
+            </div>
+            <div class="col-md-2">
+                <label for="maxPrice" class="form-label">Макс. цена:</label>
+                <input type="number" name="maxPrice" id="maxPrice" class="form-control form-control-sm" th:value="${maxPrice}" step="0.01" min="0">
+            </div>
+            <div class="col-md-3">
+                <label for="sortField" class="form-label">Сортировать по:</label>
+                <select name="sortField" id="sortField" class="form-select form-select-sm">
+                    <option value="name" th:selected="${sortField == 'name'}">Названию</option>
+                    <option value="price" th:selected="${sortField == 'price'}">Цене</option>
+                    <!-- Можно добавить и другие поля, например, 'createdAt' если оно есть и актуально -->
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label for="sortDir" class="form-label">Порядок:</label>
+                <select name="sortDir" id="sortDir" class="form-select form-select-sm">
+                    <option value="ASC" th:selected="${sortDir == 'ASC'}">По возр.</option>
+                    <option value="DESC" th:selected="${sortDir == 'DESC'}">По убыв.</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary btn-sm w-100">Фильтр</button>
+            </div>
+        </div>
+    </form>
+
     <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
     <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:if="${!products.isEmpty()}">
-        <div class="col" th:each="product : ${products}">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:if="${productsPage != null && productsPage.hasContent()}">
+        <div class="col" th:each="product : ${productsPage.content}">
             <div class="card h-100 shadow-sm product-card">
-                <img th:if="${product.imageName != null}" 
-                     th:src="@{/media/products/} + ${product.imageName}" 
-                     class="card-img-top product-card-img"
-                     alt="${product.name}">
-                <img th:if="${product.imageName == null}" 
-                     th:src="@{/images/placeholder.png}"  <!-- Заглушка, если нет изображения -->
-                     class="card-img-top product-card-img"
-                     alt="Изображение отсутствует">
+                <th:block th:with="imagePath=${product.imageName != null ? '/media/products/' + product.imageName : '/images/placeholder.png'}">
+                    <img th:src="@{${imagePath}}"
+                         class="card-img-top product-card-img"
+                         th:alt="${product.imageName != null ? product.name : 'Изображение отсутствует'}">
+                </th:block>
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title" th:text="${product.name}">Название товара</h5>
                     <p class="card-text flex-grow-1" th:text="${product.description}">Описание товара.</p>
@@ -52,9 +92,31 @@
             </div>
         </div>
     </div>
-    <div class="alert alert-info" th:if="${products.isEmpty()}">
-        <p th:if="${searchQuery != null and !searchQuery.isEmpty()}">Товары по запросу "<span th:text="${searchQuery}"></span>" не найдены.</p>
-        <p th:if="${searchQuery == null or searchQuery.isEmpty()}">В настоящее время нет доступных товаров.</p>
+    
+    <!-- Навигация по страницам (Пагинация) -->
+    <div th:if="${productsPage != null && productsPage.totalPages > 1}" class="row mt-4">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${productsPage.isFirst()} ? 'disabled' : ''">
+                    <a class="page-link" th:href="@{/main(search=${searchQuery}, categoryId=${selectedCategoryId}, minPrice=${minPrice}, maxPrice=${maxPrice}, sortField=${sortField}, sortDir=${sortDir}, page=${productsPage.number - 1}, size=${productsPage.size})}">Предыдущая</a>
+                </li>
+                
+                <th:block th:each="i : ${#numbers.sequence(0, productsPage.totalPages - 1)}">
+                    <li class="page-item" th:classappend="${i == productsPage.number} ? 'active' : ''">
+                        <a class="page-link" th:href="@{/main(search=${searchQuery}, categoryId=${selectedCategoryId}, minPrice=${minPrice}, maxPrice=${maxPrice}, sortField=${sortField}, sortDir=${sortDir}, page=${i}, size=${productsPage.size})}" th:text="${i + 1}"></a>
+                    </li>
+                </th:block>
+                
+                <li class="page-item" th:classappend="${productsPage.isLast()} ? 'disabled' : ''">
+                    <a class="page-link" th:href="@{/main(search=${searchQuery}, categoryId=${selectedCategoryId}, minPrice=${minPrice}, maxPrice=${maxPrice}, sortField=${sortField}, sortDir=${sortDir}, page=${productsPage.number + 1}, size=${productsPage.size})}">Следующая</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="alert alert-info" th:if="${productsPage == null || !productsPage.hasContent()}">
+        <p th:if="${searchQuery != null and !searchQuery.isEmpty()}">Товары по запросу "<span th:text="${searchQuery}"></span>" и указанным фильтрам не найдены.</p>
+        <p th:if="${searchQuery == null or searchQuery.isEmpty()}">В настоящее время нет доступных товаров по указанным фильтрам.</p>
     </div>
 </div>
 
